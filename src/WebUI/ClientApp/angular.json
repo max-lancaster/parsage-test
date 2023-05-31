@@ -131,5 +131,8 @@
       }
     }
   },
-  "defaultProject": "parsage_test.WebUI"
+  "defaultProject": "parsage_test.WebUI",
+  "cli": {
+    "analytics": false
+  }
 }
