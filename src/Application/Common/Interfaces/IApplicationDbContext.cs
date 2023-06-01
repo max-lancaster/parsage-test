@@ -5,6 +5,7 @@ namespace parsage_test.Application.Common.Interfaces;
 
 public interface IApplicationDbContext
 {
+    DbSet<Bike> Bikes { get; }
     DbSet<TodoList> TodoLists { get; }
 
     DbSet<TodoItem> TodoItems { get; }

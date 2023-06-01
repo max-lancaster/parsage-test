@@ -27,6 +27,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         _auditableEntitySaveChangesInterceptor = auditableEntitySaveChangesInterceptor;
     }
 
+    public DbSet<Bike> Bikes => Set<Bike>();
     public DbSet<TodoList> TodoLists => Set<TodoList>();
 
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();

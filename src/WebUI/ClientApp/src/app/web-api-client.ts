@@ -15,6 +15,126 @@ import { HttpClient, HttpHeaders, HttpResponse, HttpResponseBase } from '@angula
 
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL');
 
+export interface IBikesClient {
+    get(): Observable<BikesVm>;
+    create(command: CreateTodoItemCommand): Observable<number>;
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class BikesClient implements IBikesClient {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "";
+    }
+
+    get(): Observable<BikesVm> {
+        let url_ = this.baseUrl + "/api/Bikes";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGet(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<BikesVm>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<BikesVm>;
+        }));
+    }
+
+    protected processGet(response: HttpResponseBase): Observable<BikesVm> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BikesVm.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    create(command: CreateTodoItemCommand): Observable<number> {
+        let url_ = this.baseUrl + "/api/Bikes";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(command);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processCreate(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processCreate(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<number>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<number>;
+        }));
+    }
+
+    protected processCreate(response: HttpResponseBase): Observable<number> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+}
+
 export interface ITodoItemsClient {
     getTodoItemsWithPagination(listId: number | undefined, pageNumber: number | undefined, pageSize: number | undefined): Observable<PaginatedListOfTodoItemBriefDto>;
     create(command: CreateTodoItemCommand): Observable<number>;
@@ -689,6 +809,194 @@ export class WeatherForecastClient implements IWeatherForecastClient {
     }
 }
 
+export class BikesVm implements IBikesVm {
+    bikes?: BikeDto[];
+    manufacturers?: ManufacturerDto[];
+
+    constructor(data?: IBikesVm) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["bikes"])) {
+                this.bikes = [] as any;
+                for (let item of _data["bikes"])
+                    this.bikes!.push(BikeDto.fromJS(item));
+            }
+            if (Array.isArray(_data["manufacturers"])) {
+                this.manufacturers = [] as any;
+                for (let item of _data["manufacturers"])
+                    this.manufacturers!.push(ManufacturerDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): BikesVm {
+        data = typeof data === 'object' ? data : {};
+        let result = new BikesVm();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.bikes)) {
+            data["bikes"] = [];
+            for (let item of this.bikes)
+                data["bikes"].push(item.toJSON());
+        }
+        if (Array.isArray(this.manufacturers)) {
+            data["manufacturers"] = [];
+            for (let item of this.manufacturers)
+                data["manufacturers"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface IBikesVm {
+    bikes?: BikeDto[];
+    manufacturers?: ManufacturerDto[];
+}
+
+export class BikeDto implements IBikeDto {
+    id?: number;
+    manufacturerId?: number;
+    model?: string;
+    frameSize?: number;
+    price?: number;
+
+    constructor(data?: IBikeDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.manufacturerId = _data["manufacturerId"];
+            this.model = _data["model"];
+            this.frameSize = _data["frameSize"];
+            this.price = _data["price"];
+        }
+    }
+
+    static fromJS(data: any): BikeDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new BikeDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["manufacturerId"] = this.manufacturerId;
+        data["model"] = this.model;
+        data["frameSize"] = this.frameSize;
+        data["price"] = this.price;
+        return data;
+    }
+}
+
+export interface IBikeDto {
+    id?: number;
+    manufacturerId?: number;
+    model?: string;
+    frameSize?: number;
+    price?: number;
+}
+
+export class ManufacturerDto implements IManufacturerDto {
+    id?: number;
+    name?: string;
+
+    constructor(data?: IManufacturerDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): ManufacturerDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ManufacturerDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface IManufacturerDto {
+    id?: number;
+    name?: string;
+}
+
+export class CreateTodoItemCommand implements ICreateTodoItemCommand {
+    listId?: number;
+    title?: string | undefined;
+
+    constructor(data?: ICreateTodoItemCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.listId = _data["listId"];
+            this.title = _data["title"];
+        }
+    }
+
+    static fromJS(data: any): CreateTodoItemCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateTodoItemCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["listId"] = this.listId;
+        data["title"] = this.title;
+        return data;
+    }
+}
+
+export interface ICreateTodoItemCommand {
+    listId?: number;
+    title?: string | undefined;
+}
+
 export class PaginatedListOfTodoItemBriefDto implements IPaginatedListOfTodoItemBriefDto {
     items?: TodoItemBriefDto[];
     pageNumber?: number;
@@ -799,46 +1107,6 @@ export interface ITodoItemBriefDto {
     listId?: number;
     title?: string | undefined;
     done?: boolean;
-}
-
-export class CreateTodoItemCommand implements ICreateTodoItemCommand {
-    listId?: number;
-    title?: string | undefined;
-
-    constructor(data?: ICreateTodoItemCommand) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.listId = _data["listId"];
-            this.title = _data["title"];
-        }
-    }
-
-    static fromJS(data: any): CreateTodoItemCommand {
-        data = typeof data === 'object' ? data : {};
-        let result = new CreateTodoItemCommand();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["listId"] = this.listId;
-        data["title"] = this.title;
-        return data;
-    }
-}
-
-export interface ICreateTodoItemCommand {
-    listId?: number;
-    title?: string | undefined;
 }
 
 export class UpdateTodoItemCommand implements IUpdateTodoItemCommand {
