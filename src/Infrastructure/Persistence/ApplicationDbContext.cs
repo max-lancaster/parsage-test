@@ -7,6 +7,7 @@ using Duende.IdentityServer.EntityFramework.Options;
 using MediatR;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Bikes.Queries;
 using Microsoft.Extensions.Options;
 
 namespace parsage_test.Infrastructure.Persistence;
@@ -27,6 +28,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         _auditableEntitySaveChangesInterceptor = auditableEntitySaveChangesInterceptor;
     }
 
+    public DbSet<Manufacturer> Manufacturers => Set<Manufacturer>();    
     public DbSet<Bike> Bikes => Set<Bike>();
     public DbSet<TodoList> TodoLists => Set<TodoList>();
 

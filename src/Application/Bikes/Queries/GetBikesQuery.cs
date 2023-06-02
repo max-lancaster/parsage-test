@@ -14,7 +14,13 @@ public class GetBikesQueryHandler : IRequestHandler<GetBikesQuery, BikesVm>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
-    
+
+    public GetBikesQueryHandler(IApplicationDbContext context, IMapper mapper)
+    {
+        _context = context;
+        _mapper = mapper;
+    }
+
     public async Task<BikesVm> Handle(GetBikesQuery request, CancellationToken cancellationToken)
     {
         return new BikesVm

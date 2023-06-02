@@ -90,5 +90,50 @@ public class ApplicationDbContextInitialiser
 
             await _context.SaveChangesAsync();
         }
+
+        Manufacturer gt = new Manufacturer {Id = 3, Name ="GT"};
+        Manufacturer specialized = new Manufacturer {Id = 1, Name ="Specialized"};
+        if (!_context.Manufacturers.Any())
+        {
+            _context.Manufacturers.Add(specialized);
+            _context.Manufacturers.Add(gt);
+
+            await _context.SaveChangesAsync();
+        }
+        
+        if (!_context.Manufacturers.Any())
+        {
+            _context.Manufacturers.Add(specialized);
+            _context.Manufacturers.Add(new Manufacturer {Id = 2, Name ="Canyon"});
+            _context.Manufacturers.Add(gt);
+            _context.Manufacturers.Add(new Manufacturer {Id = 4, Name ="Trek"});
+            
+            await _context.SaveChangesAsync();
+        }
+        
+        if (!_context.Bikes.Any())
+        {
+            _context.Bikes.Add(new Bike
+            {
+                Id = 1,
+                Manufacturer = gt,
+                ManufacturerId = gt.Id,
+                Model = "Aggressor",
+                FrameSize = 19,
+                Price = 299.98m
+            });
+            
+            _context.Bikes.Add(new Bike
+            {
+                Id = 2,
+                Manufacturer = specialized,
+                ManufacturerId = specialized.Id,
+                Model = "Rockhopper",
+                FrameSize = 17,
+                Price = 499.99m
+            });
+            
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -1,0 +1,21 @@
+<h1>Bikes</h1>
+<p *ngIf="!bikes"><em>Loading...</em></p>
+<div *ngIf="bikes">
+    <p>List of current bikes in the database.</p>
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="clearfix">
+                <h2 class="float-start">Current Bikes</h2>
+            </div>
+        </div>
+        <ul class="list-group">
+            <li *ngFor="let bike of bikes;" class="list-group-item">
+                <div class="clearfix">
+                    <div class="float-start">
+                        {{ bike.model }}
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
